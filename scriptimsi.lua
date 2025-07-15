@@ -1,9 +1,9 @@
 local player = game.Players.LocalPlayer
 local runService = game:GetService("RunService")
 
--- GUI oluştur
+-- GUI
 local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
-gui.Name = "AntiHitAndBigHead"
+gui.Name = "SafeModGUI"
 
 local frame = Instance.new("Frame", gui)
 frame.Size = UDim2.new(0, 250, 0, 140)
@@ -25,30 +25,14 @@ local function createButton(text, y, callback)
 	return btn
 end
 
--- Kafaları büyüt
-local function enlargeHeads()
-	for _, plr in pairs(game.Players:GetPlayers()) do
-		if plr ~= player and plr.Character then
-			local head = plr.Character:FindFirstChild("Head")
-			if head and head:IsA("BasePart") then
-				head.Size = Vector3.new(5, 5, 5)
-				head.Transparency = 0.5
-				head.Material = Enum.Material.ForceField
-				local mesh = head:FindFirstChildWhichIsA("SpecialMesh")
-				if mesh then mesh:Destroy() end
-			end
-		end
-	end
-end
+-- Diğer oyunculara godmode
+local antiDamage = false
+local godloop
 
--- Düşmanların saldırmasını engelle (AutoRotate kapatır)
-local godmode = false
-local godmodeConn
-
-local function toggleGodMode()
-	godmode = not godmode
-	if godmode then
-		godmodeConn = runService.Stepped:Connect(function()
+local function toggleEnemyFreeze()
+	antiDamage = not antiDamage
+	if antiDamage then
+		godloop = runService.Stepped:Connect(function()
 			for _, plr in pairs(game.Players:GetPlayers()) do
 				if plr ~= player and plr.Character then
 					local hum = plr.Character:FindFirstChildOfClass("Humanoid")
@@ -60,12 +44,28 @@ local function toggleGodMode()
 			end
 		end)
 	else
-		if godmodeConn then
-			godmodeConn:Disconnect()
-			godmodeConn = nil
+		if godloop then
+			godloop:Disconnect()
+			godloop = nil
 		end
 	end
 end
 
-createButton("🧠 Kafaları Dev Yap", 10, enlargeHeads)
-createButton("🛡 Vurmayı Engelle (Aç/Kapa)", 65, toggleGodMode)
+-- Kafa büyüt
+local function enlargeHeads()
+	for _, plr in pairs(game.Players:GetPlayers()) do
+		if plr ~= player and plr.Character then
+			local head = plr.Character:FindFirstChild("Head")
+			if head then
+				head.Size = Vector3.new(5,5,5)
+				head.Transparency = 0.5
+				head.Material = Enum.Material.ForceField
+				local mesh = head:FindFirstChildWhichIsA("SpecialMesh")
+				if mesh then mesh:Destroy() end
+			end
+		end
+	end
+end
+
+createButton("🧠 Kafaları Büyüt", 10, enlargeHeads)
+createButton("🛡 Düşmanları Kitle (Aç/Kapa)", 65, toggleEnemyFreeze)
